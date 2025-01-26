@@ -1,0 +1,18 @@
+JWT - là viết tắt của khái niệm Json Web Token 
+là 1 chuẩn để dùng để truyền dữ liệu an toàn thông qua đối tượng JSON 
+Có sự an toàn vì có chứa chữ ký số 
+Dùng cho authorization(ủy quyền) chứ ko phải authenication(xác thực)
+
+JWT bao gồm 3 phần 
+- Phần đầu header (SỬ dụng thuật toán HS256)
+- Phần 2 payload (Chứa thông tin của người dùng)
+- Phần 3 signature (Tạo ra bằng encode Base64(header) + "." + encode Base64(payload) + secret key)
+3 phần này được nối với nhau bởi dấu chấm 
+không được public secret key ra ngoài 
+
+Phương thức hoạt động 
+User login --> Authenicate --> Server tạo ra và sign 1 jwt --> Server trả về JWT và cookie 
+User --> Access --> Request với cookies --> Server verify JWT --> Đúng thì respone data (Validation)
+
+Critical Differcence 
+Server ko chứa bất kỳ session 
