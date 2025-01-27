@@ -16,3 +16,10 @@ User --> Access --> Request với cookies --> Server verify JWT --> Đúng thì 
 
 Critical Differcence 
 Server ko chứa bất kỳ session 
+
+// Generate JWT token
+// const token = jwt.sign(
+//   { userId: user.id, email: user.email },
+//   jwtSecretKey,
+//   { expiresIn: "1h" }
+// );

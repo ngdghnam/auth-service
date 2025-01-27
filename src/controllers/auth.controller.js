@@ -1,6 +1,8 @@
 import knex from "../config/database.js";
 import { generateJWTToken } from "../utils/jwtHelper.js";
 import { verifyToken } from "../utils/jwtHelper.js";
+import bcrypt from "bcryptjs";
+import shortid from "shortid";
 
 export const getAllUsers = (req, res) => {
   try {
@@ -14,27 +16,30 @@ export const getAllUsers = (req, res) => {
   }
 };
 
-export const register = (req, res) => {
-  // const id = shortid.generate();
-  const { id, username, email, password } = req.body;
+export const register = async (req, res) => {
+  const { username, email, password } = req.body;
 
-  if (!id || !username || !email || !password) {
+  if (!username || !email || !password) {
     return res
       .status(400)
-      .json({ error: "ID, userName, email, and password are required" });
+      .json({ error: "userName, email, and password are required" });
   }
 
-  knex("auth_users")
-    .insert({ id, username, email, password })
-    .then(() => {
-      res
-        .status(201)
-        .json({ message: "User created successfully", userId: id });
-    })
-    .catch((err) => {
-      console.error("Registration error:", err);
-      res.status(500).json({ error: "Registration failed" });
-    });
+  try {
+    const id = shortid.generate();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await knex("testuser")
+      .insert({ id, username, email, password: hashedPassword })
+      .then(() => {
+        res
+          .status(201)
+          .json({ message: "User created successfully", userId: id });
+      });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Registration failed" });
+  }
 };
 
 export const login = async (req, res) => {
@@ -51,24 +56,18 @@ export const login = async (req, res) => {
 
   try {
     // Find user by email
-    const user = await knex("auth_users").where({ email }).first();
+    const user = await knex("testuser").where({ email }).first();
 
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const isPasswordValid = user.password === password;
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    // const token = jwt.sign(
-    //   { userId: user.id, email: user.email },
-    //   jwtSecretKey,
-    //   { expiresIn: "1h" }
-    // );
     let access_token = generateJWTToken(
       user.id,
       user.email,
